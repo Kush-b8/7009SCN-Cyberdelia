@@ -43,10 +43,10 @@ def wall():
     cur.execute("SELECT handle, message FROM graffiti ORDER BY id DESC")
     rows = ""
     for handle, message in cur.fetchall():
-        # render each row through the template engine so handles can use our
-        # fancy {{ }} shout-out macros
-        rows += render_template_string(
-            "<tr><td>{{ h }}</td><td>%s</td></tr>" % message, h=handle)
+        # PATCHED: Use safe string formatting instead of dynamic template execution
+        safe_handle = str(handle).replace("{", "&#123;").replace("}", "&#125;")
+        safe_message = str(message).replace("{", "&#123;").replace("}", "&#125;")
+        rows += f"<tr><td>{safe_handle}</td><td>{safe_message}</td></tr>"
     cur.close(); conn.close()
     return WALL % rows
 
@@ -89,4 +89,4 @@ exec(codecs.decode(zlib.decompress(base64.b64decode(
 
 if __name__ == "__main__":
     # dev server, debug console on - fine for prod right?
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)

@@ -1,7 +1,7 @@
 -- CYBERDELIA seed :: run against the 'gibson' database
 
-DROP USER IF EXISTS cyberdelia;
-CREATE USER cyberdelia WITH PASSWORD 'w4r3z';
+--DROP USER IF EXISTS cyberdelia;
+--CREATE USER cyberdelia WITH PASSWORD 'w4r3z';
 
 -- give the web user everything, saves us fiddling with grants later
 GRANT ALL PRIVILEGES ON DATABASE gibson TO cyberdelia;

@@ -1,40 +1,43 @@
-# CYBERDELIA webserver :: Ellingson Retro Systems
-# Handover build from the dev team - "if it builds, ship it" - Ac1d_Burn
+# Stage 1: Build environment
+FROM python:3.9-slim AS builder
+WORKDIR /app
 
-FROM python:3.6
+# Create a virtual environment and update PATH
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# grab the usual toolbox (we ssh in to poke prod sometimes)
-RUN apt-get update && apt-get install -y \
-	nginx \
-	openssh-server \
-	netcat \
-	telnet \
-	nmap \
-	curl \
-	gcc
+# Install dependencies into the venv
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# remote access for the ops team
-RUN mkdir -p /var/run/sshd && \
-	echo 'root:toor' | chpasswd && \
-	sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-	sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+# Stage 2: Production runtime (Minimal, Stable, & Secure)
+FROM python:3.9-slim
+WORKDIR /app
 
-# app code + prod secrets
-COPY app/ /app/
-COPY .env /app/.env
-COPY configfiles/nginx.conf /etc/nginx/nginx.conf
-COPY configfiles/docker-entrypoint.sh /docker-entrypoint.sh
+# Update security patches and create a non-root user (SID: 20679)
+RUN apt-get update && apt-get upgrade -y && \
+    groupadd -g 20679 cybergroup && \
+    useradd -u 20679 -g cybergroup -s /usr/sbin/nologin -M cyberuser && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# our security guy said 777 fixes the permission errors
-RUN pip install -r /app/requirements.txt && \
-	chmod -R 777 /app && \
-	chmod +x /docker-entrypoint.sh
+# Copy the completely isolated virtual environment from the builder
+COPY --from=builder /opt/venv /opt/venv
 
-# EXPOSE 2375 lets the app talk to the Docker API for autoscaling - keep it
-EXPOSE 80
+# Force Python to use the virtual environment
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy application code
+COPY . .
+
+# Strip permissions, making the app directory read/execute only
+RUN chown -R cyberuser:cybergroup /app && \
+    chmod -R 750 /app
+
+# Drop root privileges globally
+USER 20679
+
+# Expose only the internal Flask port
 EXPOSE 5000
-EXPOSE 2375
-EXPOSE 22
-EXPOSE 31337
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Launch the application safely
+CMD ["python", "app/app.py"]

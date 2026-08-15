@@ -1,0 +1,28 @@
+services:
+  thegibson:
+    build: ./dbserver
+    image: 17024679/cyberdelia_db_secure
+    container_name: 17024679_cyberdelia_db_c
+    hostname: thegibson
+    environment:
+      - POSTGRES_DB=gibson
+      - POSTGRES_USER=cyberdelia
+      - POSTGRES_PASSWORD=w4r3z
+    networks:
+      - cyberdelia_secure_net
+
+  webserver:
+    build: ./webserver
+    image: 17024679/cyberdelia_web_secure
+    container_name: 17024679_cyberdelia_web_c
+    restart: always
+    ports:
+      - "8079:5000"
+    depends_on:
+      - thegibson
+    networks:
+      - cyberdelia_secure_net
+
+networks:
+  cyberdelia_secure_net:
+    driver: bridge

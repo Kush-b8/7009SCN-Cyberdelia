@@ -6,4 +6,6 @@ FROM postgres:11
 COPY postgresql.conf /postgres/postgresql.conf
 COPY pg_hba.conf     /postgres/pg_hba.conf
 
+COPY sqlconfig/*.sql /docker-entrypoint-initdb.d/
+
 EXPOSE 5432
