@@ -1,5 +1,5 @@
 # Change your SID to your own one
-SID=u1234567
+SID=17024679
 NAME=cyberdelia_web
 
 ALL:
