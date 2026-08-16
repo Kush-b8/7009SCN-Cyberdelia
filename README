@@ -1,6 +1,11 @@
-CYBERDELIA: Technical Justification Log
+# CYBERDELIA: Technical Justification Log
+
 The legacy CYBERDELIA prototype presented severe architectural vulnerabilities, violating fundamental principles of operational security. To align the deployment with NIST SP 800-190 guidelines and mitigate the risks identified in the Part A Security Audit, the following technical refactoring was executed:
-1. Declarative IaC & Network Isolation: The disjointed manual Makefile deployment was migrated to a unified docker-compose.yml architecture. This logically isolated the PostgreSQL backend and the Python web application onto a private, user-defined bridge network, exposing only the designated student ingress port (8079).
-2. Minimal Base Images & Attack Surface Reduction: The bloated container images (exceeding 1GB) were refactored using multi-stage builds and minimal debian-slim bases. This reduced the runtime footprint to ~174MB, physically eradicating offensive Living-off-the-Land (LotL) binaries like netcat to prevent reverse-shell execution.
-3. Least-Privilege Execution: The legacy configuration executed processes as the root user. This was mitigated by baking custom user directives (uid=20679) into the Dockerfiles, explicitly stripping kernel capabilities from the runtime environment.
-4. Application Hardening: Hardcoded legacy credentials (w4r3z) were decoupled from the source code and managed via dynamic environment variable injection. Furthermore, the Server-Side Template Injection (SSTI) flaw was fully remediated by replacing unsafe render_template_string logic with safe, static f-strings.
+
+**1. Declarative IaC & Network Isolation:** The disjointed manual `Makefile` deployment was migrated to a unified `docker-compose.yml` architecture. This logically isolated the PostgreSQL backend and the Python web application onto a private, user-defined bridge network, exposing only the designated student ingress port (8079).
+
+**2. Minimal Base Images & Attack Surface Reduction:** The bloated container images (exceeding 1GB) were refactored using multi-stage builds and minimal `debian-slim` bases. This reduced the runtime footprint to ~174MB, physically eradicating offensive Living-off-the-Land (LotL) binaries like `netcat` to prevent reverse-shell execution.
+
+**3. Least-Privilege Execution:** The legacy configuration executed processes as the root user. This was mitigated by baking custom user directives (`uid=20679`) into the Dockerfiles, explicitly stripping kernel capabilities from the runtime environment.
+
+**4. Application Hardening:** Hardcoded legacy credentials (`w4r3z`) were decoupled from the source code and managed via dynamic environment variable injection. Furthermore, the Server-Side Template Injection (SSTI) flaw was fully remediated by replacing unsafe `render_template_string` logic with safe, static f-strings.
